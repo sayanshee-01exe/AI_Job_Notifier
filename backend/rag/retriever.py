@@ -30,7 +30,7 @@ async def retrieve_relevant_jobs(
     if store.size > 0:
         # Vector-based retrieval
         query_embedding = create_embedding(query)
-        results = store.search_similar(query_embedding, top_k=top_k)
+        results = store.search_hybrid(query, query_embedding, top_k=top_k)
 
         job_ids = [ext_id for ext_id, score in results]
         if job_ids:

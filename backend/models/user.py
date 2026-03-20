@@ -19,9 +19,11 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
 
     # Profile data (populated from resume parsing)
+    role = Column(String(255), nullable=True)
     skills = Column(ARRAY(String), default=list)
     experience = Column(Text, default="")
     education = Column(ARRAY(String), default=list)
+    preferred_location = Column(String(255), nullable=True)
     resume_path = Column(String(500), nullable=True)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
@@ -33,3 +35,14 @@ class User(Base):
 
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email}>"
+
+
+from sqlalchemy import ForeignKey
+class UserInteraction(Base):
+    __tablename__ = "user_interactions"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False, index=True)
+    action = Column(String(50), nullable=False)  # "click", "apply", "skip"
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))

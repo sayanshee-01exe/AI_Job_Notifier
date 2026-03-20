@@ -37,9 +37,11 @@ async def ask_question(
     # Step 2: Select and fill prompt template
     prompt_template = select_prompt(question)
     prompt = prompt_template.format(
+        role=user_profile.get("role") or "Not specified",
         skills=", ".join(user_profile.get("skills", [])) or "Not specified",
         experience=user_profile.get("experience", "Not specified") or "Not specified",
         education=", ".join(user_profile.get("education", [])) or "Not specified",
+        preferred_location=user_profile.get("preferred_location") or "Not specified",
         job_context=job_context,
         question=question,
     )

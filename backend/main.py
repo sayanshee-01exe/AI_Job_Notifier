@@ -36,6 +36,19 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Starting AI Job Notifier API")
     await init_db()
     logger.info("✔  Database initialized")
+
+    from backend.core.database import async_session_factory
+    from backend.services.job_service import get_all_jobs_raw
+    from backend.vectorstore.store import get_vector_store
+    
+    logger.info("Loading semantic vector store...")
+    async with async_session_factory() as db:
+        jobs = await get_all_jobs_raw(db)
+        if jobs:
+            store = get_vector_store()
+            store.populate_from_jobs(jobs)
+    logger.info("✔  Vector store populated")
+
     yield
     await close_db()
     logger.info("🛑 Shutting down AI Job Notifier API")

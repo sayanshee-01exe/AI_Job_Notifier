@@ -2,20 +2,26 @@
 Prompt templates for the RAG pipeline.
 """
 
-JOB_FIT_PROMPT = """You are an AI career advisor. Based on the user's profile and the relevant job listings provided, answer the user's question.
+JOB_FIT_PROMPT = """You are a job recommendation engine.
 
-## User Profile
-- **Skills**: {skills}
-- **Experience**: {experience}
-- **Education**: {education}
+User Profile:
+- Role: {role}
+- Skills: {skills}
+- Experience: {experience}
+- Education: {education}
+- Preferred Location: {preferred_location}
 
-## Relevant Job Listings
+Jobs:
 {job_context}
 
-## User Question
-{question}
+Tasks:
+1. Rank top 5 jobs for this user
+2. Explain match score
+3. Suggest skill gaps
+4. Be concise and actionable
 
-Provide a detailed, helpful, and actionable answer. Be specific about skill gaps, strengths, and actionable recommendations.
+User Question:
+{question}
 """
 
 RESUME_IMPROVEMENT_PROMPT = """You are an expert resume coach. Based on the user's current profile and the types of jobs they might be interested in, provide resume improvement suggestions.
@@ -34,20 +40,25 @@ RESUME_IMPROVEMENT_PROMPT = """You are an expert resume coach. Based on the user
 Provide specific, actionable suggestions to improve their resume and increase their chances of landing interviews.
 """
 
-GENERAL_CAREER_PROMPT = """You are a helpful AI career advisor. Using the context provided, help the user with their career-related question.
+GENERAL_CAREER_PROMPT = """You are a job recommendation engine.
 
-## User Profile
-- **Skills**: {skills}
-- **Experience**: {experience}
-- **Education**: {education}
+User Profile:
+- Role: {role}
+- Skills: {skills}
+- Experience: {experience}
+- Education: {education}
+- Preferred Location: {preferred_location}
 
-## Context from Job Market
+Jobs Context:
 {job_context}
 
-## User Question
-{question}
+Tasks:
+1. Answer the user's question directly
+2. Suggest skill gaps to improve
+3. Be concise and actionable
 
-Provide a helpful and informative response.
+User Question:
+{question}
 """
 
 

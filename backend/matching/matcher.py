@@ -11,6 +11,7 @@ from backend.matching.scorers import (
     calculate_skill_match,
     calculate_semantic_similarity,
     calculate_experience_match,
+    calculate_recency_score,
 )
 from backend.schemas.job import JobMatch, JobResponse
 
@@ -19,7 +20,7 @@ logger = logging.getLogger("ai_job_notifier")
 # ── Scoring Weights ───────────────────────────────────────
 WEIGHT_SIMILARITY = 0.5
 WEIGHT_SKILL = 0.3
-WEIGHT_EXPERIENCE = 0.2
+WEIGHT_RECENCY = 0.2
 
 
 def compute_match_score(user_profile: Dict[str, Any], job) -> JobMatch:
@@ -49,16 +50,13 @@ def compute_match_score(user_profile: Dict[str, Any], job) -> JobMatch:
         user_profile.get("skills", []),
         job.skills_required or [],
     )
-    experience_score = calculate_experience_match(
-        user_profile.get("experience", ""),
-        job.experience_level or "",
-    )
+    recency_score = calculate_recency_score(job.created_at)
 
     # Weighted combination
     final_score = (
         WEIGHT_SIMILARITY * similarity_score
         + WEIGHT_SKILL * skill_score
-        + WEIGHT_EXPERIENCE * experience_score
+        + WEIGHT_RECENCY * recency_score
     )
 
     return JobMatch(
@@ -66,7 +64,7 @@ def compute_match_score(user_profile: Dict[str, Any], job) -> JobMatch:
         match_score=round(final_score, 4),
         skill_match_score=round(skill_score, 4),
         similarity_score=round(similarity_score, 4),
-        experience_match_score=round(experience_score, 4),
+        recency_score=round(recency_score, 4),
     )
 
 

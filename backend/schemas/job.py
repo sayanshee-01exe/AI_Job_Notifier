@@ -51,4 +51,4 @@ class JobMatch(BaseModel):
     match_score: float = Field(..., ge=0.0, le=1.0)
     skill_match_score: float = 0.0
     similarity_score: float = 0.0
-    experience_match_score: float = 0.0
+    recency_score: float = 0.0

@@ -5,7 +5,7 @@ Resume parser: extracts text from PDF/DOCX and delegates to extractors.
 import logging
 from pathlib import Path
 
-from backend.nlp.extractors import extract_skills, extract_experience, extract_education
+from backend.nlp.extractors import extract_skills, extract_experience, extract_education, extract_role, extract_preferred_location
 from backend.nlp.utils import clean_text
 from backend.schemas.resume import ResumeData
 
@@ -61,9 +61,11 @@ def parse_resume(file_path: str) -> ResumeData:
     cleaned = clean_text(raw_text)
 
     # Extract structured data
+    role = extract_role(cleaned)
     skills = extract_skills(cleaned)
     experience = extract_experience(cleaned)
     education = extract_education(cleaned)
+    preferred_location = extract_preferred_location(cleaned)
 
     logger.info(
         "Parsed resume: %d skills, %d education entries",
@@ -72,8 +74,10 @@ def parse_resume(file_path: str) -> ResumeData:
     )
 
     return ResumeData(
+        role=role,
         skills=skills,
         experience=experience,
         education=education,
+        preferred_location=preferred_location,
         raw_text=cleaned,
     )

@@ -4,6 +4,7 @@ Individual scoring functions for job matching.
 
 import re
 from typing import List, Set
+from datetime import datetime, timezone
 
 import numpy as np
 
@@ -95,6 +96,24 @@ def calculate_experience_match(user_experience: str, job_experience_level: str) 
             return max(0.5, 1.0 - (user_years - max_years) * 0.05)
 
     return 0.5  # Unknown level = neutral
+
+
+def calculate_recency_score(job_created_at: datetime) -> float:
+    """Calculate recency score (1.0 for new, decaying over time)."""
+    if not job_created_at:
+        return 0.5
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    age_days = (now - job_created_at).days
+    if age_days <= 1:
+        return 1.0
+    elif age_days <= 7:
+        return 0.8
+    elif age_days <= 14:
+        return 0.6
+    elif age_days <= 30:
+        return 0.4
+    else:
+        return 0.2
 
 
 def _extract_years(text: str) -> int | None:

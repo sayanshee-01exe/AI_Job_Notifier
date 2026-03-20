@@ -9,6 +9,30 @@ from typing import List
 from backend.nlp.utils import SKILL_KEYWORDS, EDUCATION_KEYWORDS, DEGREE_PATTERNS
 
 
+def extract_role(text: str) -> str:
+    """Extract primary role from resume text using common job titles."""
+    titles = [
+        "Software Engineer", "Machine Learning Engineer", "ML Engineer",
+        "Data Scientist", "Data Analyst", "Product Manager", "Frontend Developer",
+        "Backend Developer", "Full Stack Developer", "UI/UX Designer", "DevOps Engineer"
+    ]
+    text_lower = text.lower()
+    for title in titles:
+        if title.lower() in text_lower:
+            return title
+    return "Software Engineer"
+
+
+def extract_preferred_location(text: str) -> str:
+    """Extract location from text."""
+    locations = ["Remote", "New York", "San Francisco", "London", "Bengaluru", "Hybrid"]
+    text_lower = text.lower()
+    for loc in locations:
+        if loc.lower() in text_lower:
+            return loc
+    return "Remote"
+
+
 def extract_skills(text: str) -> List[str]:
     """
     Extract skills from resume text using keyword matching.

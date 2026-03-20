@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 import faiss
 import numpy as np
+from rank_bm25 import BM25Okapi
 
 logger = logging.getLogger("ai_job_notifier")
 
@@ -33,6 +34,27 @@ class FAISSVectorStore:
         self._id_map: Dict[int, int] = {}   # external_id → faiss_internal_idx
         self._reverse_map: Dict[int, int] = {}  # faiss_internal_idx → external_id
         self._next_idx = 0
+        self._bm25: Optional[BM25Okapi] = None
+        self._corpus_texts = []
+        self._corpus_ids = []
+
+    def populate_from_jobs(self, jobs: List[Any]) -> None:
+        from backend.vectorstore.embeddings import create_embedding
+        texts = []
+        vectors = []
+        ids = []
+        tokenized_corpus = []
+        for job in jobs:
+            job_text = f"{job.title} {job.description} {' '.join(job.skills_required or [])}"
+            texts.append(job_text)
+            ids.append(job.id)
+            tokenized_corpus.append(job_text.lower().split())
+            vectors.append(create_embedding(job_text))
+        if ids:
+            self.store_batch_embeddings(ids, vectors)
+            self._corpus_texts = texts
+            self._corpus_ids = ids
+            self._bm25 = BM25Okapi(tokenized_corpus)
 
     @property
     def size(self) -> int:
@@ -111,6 +133,26 @@ class FAISSVectorStore:
                 results.append((ext_id, float(dist)))
 
         return results
+
+    def search_hybrid(self, query: str, query_embedding: np.ndarray, top_k: int = 10) -> List[Tuple[int, float]]:
+        faiss_results = self.search_similar(query_embedding, top_k=top_k*2)
+        if not self._bm25 or not self._corpus_ids:
+            return faiss_results[:top_k]
+            
+        faiss_scores = {ext_id: score for ext_id, score in faiss_results}
+        tokenized_query = query.lower().split()
+        bm25_scores_raw = self._bm25.get_scores(tokenized_query)
+        max_bm25 = max(bm25_scores_raw) if len(bm25_scores_raw) > 0 and max(bm25_scores_raw) > 0 else 1.0
+        
+        combined_results = []
+        for i, ext_id in enumerate(self._corpus_ids):
+            vec_s = faiss_scores.get(ext_id, 0.0)
+            bm25_s = bm25_scores_raw[i] / max_bm25
+            final_score = 0.7 * vec_s + 0.3 * bm25_s
+            combined_results.append((ext_id, final_score))
+            
+        combined_results.sort(key=lambda x: x[1], reverse=True)
+        return combined_results[:top_k]
 
     def clear(self) -> None:
         """Clear all stored embeddings."""

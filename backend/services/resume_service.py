@@ -48,6 +48,8 @@ async def handle_resume_upload(
     parsed_data: ResumeData = parse_resume(str(file_path))
 
     # Update user profile
+    user.role = parsed_data.role
+    user.preferred_location = parsed_data.preferred_location
     user.skills = parsed_data.skills
     user.experience = parsed_data.experience
     user.education = parsed_data.education

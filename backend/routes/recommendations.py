@@ -48,3 +48,25 @@ async def ask(
     }
     answer = await ask_question(request.question, user_profile, db)
     return AskResponse(question=request.question, answer=answer)
+
+
+class InteractionRequest(BaseModel):
+    job_id: int
+    action: str
+
+@router.post("/interact")
+async def interact(
+    request: InteractionRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Record user interaction (click, apply, skip) for feedback loop."""
+    from backend.models.user import UserInteraction
+    interaction = UserInteraction(
+        user_id=current_user.id,
+        job_id=request.job_id,
+        action=request.action
+    )
+    db.add(interaction)
+    await db.commit()
+    return {"status": "success", "message": f"Recorded {request.action}"}

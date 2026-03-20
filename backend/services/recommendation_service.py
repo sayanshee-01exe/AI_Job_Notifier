@@ -23,10 +23,21 @@ async def get_recommendations(
         logger.warning("User %s has no profile data. Returning empty recommendations.", user.id)
         return []
 
+    # Fetch user interactions
+    from backend.models.user import UserInteraction
+    from sqlalchemy import select
+    res = await db.execute(select(UserInteraction).where(UserInteraction.user_id == user.id))
+    interactions = res.scalars().all()
+    ignore_job_ids = {i.job_id for i in interactions if i.action in ("skip", "apply")}
+
     # Fetch all jobs
     jobs = await get_all_jobs_raw(db)
     if not jobs:
         return []
+
+    # Filter out ignored jobs
+    if ignore_job_ids:
+        jobs = [j for j in jobs if j.id not in ignore_job_ids]
 
     # Build user profile dict
     user_profile = {
